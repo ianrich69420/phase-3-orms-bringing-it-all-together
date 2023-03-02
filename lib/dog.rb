@@ -39,6 +39,12 @@ class Dog
     # get the dog ID from the database and save it to the Ruby instance
     self.id = DB[:conn].execute("SELECT last_insert_rowid() FROM dogs")[0][0]
 
+    if self.id == true
+      self.update
+    else
+      self
+    end
+
     # return the Ruby instance
     self
   end
@@ -86,5 +92,33 @@ class Dog
     DB[:conn].execute(sql, id).map do |row|
       self.new_from_db(row)
     end.first
+  end
+
+  def self.find_or_create_by(name:, breed:)
+    sql = <<-SQL
+      SELECT *
+      FROM dogs
+      WHERE name = ?
+      OR breed = ?
+      LIMIT 1
+    SQL
+
+    dog = DB[:conn].execute(sql, name, breed).map { |row| self.new_from_db(row) }.first
+
+    if dog.name == name && dog.breed == breed
+      dog
+    else
+      Dog.create(name: name, breed: breed)
+    end
+  end
+
+  def update
+    sql = <<-SQL
+      UPDATE dogs
+      SET name = ?
+      WHERE name != ?
+    SQL
+
+    DB[:conn].execute(sql, self.name, self.name)
   end
 end
