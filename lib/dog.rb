@@ -28,25 +28,23 @@ class Dog
   end
 
   def save
-    sql = <<-SQL
-      INSERT INTO dogs (name, breed)
-      VALUES (?, ?)
-    SQL
-
-    # insert the song
-    DB[:conn].execute(sql, self.name, self.breed)
-
-    # get the dog ID from the database and save it to the Ruby instance
-    self.id = DB[:conn].execute("SELECT last_insert_rowid() FROM dogs")[0][0]
-
-    if self.id == true
+    if self.id
       self.update
     else
+      sql = <<-SQL
+        INSERT INTO dogs (name, breed)
+        VALUES (?, ?)
+      SQL
+
+      # insert the song
+      DB[:conn].execute(sql, self.name, self.breed)
+
+      # get the dog ID from the database and save it to the Ruby instance
+      self.id = DB[:conn].execute("SELECT last_insert_rowid() FROM dogs")[0][0]
+
+      # return the Ruby instance
       self
     end
-
-    # return the Ruby instance
-    self
   end
 
   def self.create(name:, breed:)
